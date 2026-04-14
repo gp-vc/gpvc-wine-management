@@ -1,0 +1,68 @@
+{
+  "entities": {
+    "wine": {
+      "title": "Wine",
+      "description": "Wine inventory item",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Wine name" },
+        "producer": { "type": "string", "description": "Producer name" },
+        "region": { "type": "string", "description": "Region" },
+        "country": { "type": "string", "description": "Country" },
+        "type": { "type": "string", "enum": ["Red", "White", "Sparkling", "Rosé", "Dessert"] },
+        "vintage": { "type": "string" },
+        "quantity": { "type": "number" },
+        "price": { "type": "number" },
+        "location": { "type": "string" },
+        "status": { "type": "string", "enum": ["Optimal", "Aging", "Peak", "Low Stock"] },
+        "importDate": { "type": "string", "format": "date" },
+        "ownerId": { "type": "string", "description": "UID of the user who owns this data" }
+      },
+      "required": ["name", "quantity", "ownerId"]
+    },
+    "partner": {
+      "title": "Partner",
+      "description": "Supplier or Client",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["Supplier", "Client"] },
+        "contact": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "location": { "type": "string" },
+        "ownerId": { "type": "string" }
+      },
+      "required": ["name", "type", "ownerId"]
+    },
+    "transaction": {
+      "title": "Transaction",
+      "description": "Inbound or Outbound movement",
+      "type": "object",
+      "properties": {
+        "wineId": { "type": "string" },
+        "wineName": { "type": "string" },
+        "partnerId": { "type": "string" },
+        "partnerName": { "type": "string" },
+        "type": { "type": "string", "enum": ["Inbound", "Outbound"] },
+        "quantity": { "type": "number" },
+        "date": { "type": "string", "format": "date" },
+        "ownerId": { "type": "string" }
+      },
+      "required": ["wineId", "type", "quantity", "ownerId"]
+    }
+  },
+  "firestore": {
+    "/wines/{wineId}": {
+      "schema": "wine",
+      "description": "Collection of wine inventory"
+    },
+    "/partners/{partnerId}": {
+      "schema": "partner",
+      "description": "Collection of suppliers and clients"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "transaction",
+      "description": "History of movements"
+    }
+  }
+}
