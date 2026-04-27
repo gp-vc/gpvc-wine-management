@@ -1,34 +1,12 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { getFirestore, collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, Timestamp, getDocFromServer } from 'firebase/firestore';
-// Firebase configuration
-// In Vercel, we use environment variables. In local/AI Studio, we might have a config file.
-let firebaseConfig: any = {};
+import firebaseConfig from './firebase-applet-config.json';
 
-try {
-  // Try to import the config file if it exists (local/AI Studio)
-  // We use a dynamic approach or just check env vars first
-  // For Vercel build to pass, we must handle the case where the file is missing
-} catch (e) {
-  // File missing, will rely on env vars
-}
-
-const config = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  firestoreDatabaseId: import.meta.env.VITE_FIREBASE_FIRESTORE_DB_ID,
-};
-
-// Validate that we have the minimum required config
-if (!config.apiKey && !config.projectId) {
-  console.warn("Firebase configuration is missing. If you are in AI Studio, ensure Firebase is set up. If you are in Vercel, check your Environment Variables.");
-}
-
-const app = initializeApp(config as any);
+// Initialize Firebase
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app, config.firestoreDatabaseId);
+export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId); /* CRITICAL: The app will break without this line */
 export const googleProvider = new GoogleAuthProvider();
 
 // Error handler helper

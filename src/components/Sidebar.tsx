@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "../lib/utils";
+import { auth } from "../firebase";
 
 interface SidebarProps {
   activeTab: string;
@@ -77,14 +78,6 @@ export function Sidebar({ activeTab, setActiveTab, onLogout, onSync, isSyncing }
           </nav>
 
           <div className="pt-6 border-t border-gray-50 space-y-1">
-            <button 
-              onClick={onSync}
-              disabled={isSyncing}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-wine-accent hover:bg-wine-primary/10 transition-all disabled:opacity-50"
-            >
-              <ArrowLeftRight className={cn("w-5 h-5", isSyncing && "animate-spin")} />
-              {isSyncing ? "동기화 중..." : "데이터 동기화"}
-            </button>
             <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-wine-dark transition-all">
               <Settings className="w-5 h-5" />
               설정
@@ -97,6 +90,14 @@ export function Sidebar({ activeTab, setActiveTab, onLogout, onSync, isSyncing }
               로그아웃
             </button>
           </div>
+
+          {auth.currentUser && (
+            <div className="mt-4 px-2">
+              <p className="text-[10px] text-gray-400 truncate">
+                {auth.currentUser.email}
+              </p>
+            </div>
+          )}
         </div>
       </aside>
     </>

@@ -2,29 +2,29 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
-  
-  --color-wine-primary: #bdb9dc;
-  --color-wine-dark: #2d2a4a;
-  --color-wine-light: #f4f3f9;
-  --color-wine-accent: #8e89b8;
-  
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
+    --font-sans: "Inter", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+
+    --color-wine-primary: #bdb9dc;
+    --color-wine-dark: #2d2a4a;
+    --color-wine-light: #f4f3f9;
+    --color-wine-accent: #8e89b8;
+
+    --radius-xl: 1rem;
+    --radius-2xl: 1.5rem;
 }
 
 @layer base {
-  body {
-    @apply bg-wine-light text-wine-dark font-sans antialiased;
-  }
+    body {
+        @apply bg-wine-light text-wine-dark font-sans antialiased;
+    }
 }
 
 @layer utilities {
-  .glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-sm;
-  }
-  
-  .sidebar-item-active {
-    @apply bg-wine-primary/20 text-wine-accent font-semibold;
-  }
+    .glass-card {
+        @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-sm;
+    }
+
+    .sidebar-item-active {
+        @apply bg-wine-primary/20 text-wine-accent font-semibold;
+    }
 }

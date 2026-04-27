@@ -1,5 +1,6 @@
 {
   "name": "GPVC 와인 재고 관리",
-  "description": "와인 수입사를 위한 전문적인 재고 및 거래처 관리 시스템.",
-  "requestFramePermissions": []
+  "description": "",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
 }

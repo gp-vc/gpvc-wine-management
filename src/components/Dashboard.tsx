@@ -44,9 +44,9 @@ export function Dashboard({ wines, transactions, onViewAll }: DashboardProps) {
     return `₩${result.trim()}`;
   };
 
-  const totalValue = wines.reduce((acc, wine) => acc + (wine.price * wine.quantity), 0);
+  const totalValue = wines.reduce((acc, wine) => acc + (wine.priceB2B * wine.quantity), 0);
   const totalBottles = wines.reduce((acc, wine) => acc + wine.quantity, 0);
-  const lowStockCount = wines.filter(w => w.quantity < 12).length;
+  const lowStockCount = wines.filter(w => w.quantity < 3).length;
 
   // Revenue and Profit calculations
   const outboundTransactions = transactions.filter(t => t.type === "Outbound");
@@ -62,36 +62,28 @@ export function Dashboard({ wines, transactions, onViewAll }: DashboardProps) {
 
   const widgets = [
     { 
-      label: "총 자산 가치", 
+      label: "B2B 재고", 
       value: formatKoreanCurrency(totalValue), 
       icon: DollarSign, 
       color: "bg-blue-500",
-      trend: "+5.2%",
-      isUp: true
     },
     { 
       label: "보유 총 병 수", 
       value: `${totalBottles.toLocaleString()}병`, 
       icon: Package, 
       color: "bg-wine-primary",
-      trend: `+${transactions.filter(t => t.type === "Inbound").length}`,
-      isUp: true
     },
     { 
       label: "누적 매출액", 
       value: formatKoreanCurrency(totalRevenue), 
       icon: TrendingUp, 
       color: "bg-green-500",
-      trend: "실시간",
-      isUp: true
     },
     { 
       label: "누적 영업 이익", 
       value: formatKoreanCurrency(totalProfit), 
       icon: DollarSign, 
       color: "bg-purple-500",
-      trend: `${((totalProfit / totalRevenue) * 100 || 0).toFixed(1)}%`,
-      isUp: true
     },
   ];
 
@@ -115,10 +107,6 @@ export function Dashboard({ wines, transactions, onViewAll }: DashboardProps) {
             <div className="flex items-center justify-between mb-4">
               <div className={`p-3 rounded-2xl ${widget.color} text-white`}>
                 <widget.icon className="w-5 h-5" />
-              </div>
-              <div className={`flex items-center gap-1 text-xs font-bold ${widget.isUp ? "text-green-500" : "text-red-500"}`}>
-                {widget.isUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                {widget.trend}
               </div>
             </div>
             <div className="text-2xl font-bold text-wine-dark mb-1">{widget.value}</div>
@@ -148,7 +136,9 @@ export function Dashboard({ wines, transactions, onViewAll }: DashboardProps) {
                   </div>
                   <div>
                     <div className="text-sm font-bold text-wine-dark">{t.wineName}</div>
-                    <div className="text-[10px] text-gray-400 font-medium uppercase">{t.partnerName}</div>
+                    <div className="text-[10px] text-gray-400 font-medium uppercase">
+                      {t.partnerName}{t.notes ? ` · ${t.notes}` : ""}
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">
@@ -171,25 +161,16 @@ export function Dashboard({ wines, transactions, onViewAll }: DashboardProps) {
             <h3 className="text-lg font-bold text-wine-dark">재고 부족 알림</h3>
           </div>
           <div className="space-y-4">
-            {wines.filter(w => w.quantity < 12).map((w) => (
+            {wines.filter(w => w.quantity < 3).map((w) => (
               <div key={w.id} className="p-4 rounded-2xl border border-red-100 bg-red-50/30">
-                <div className="text-sm font-bold text-wine-dark mb-1">{w.name}</div>
+                <div className="text-sm font-bold text-wine-dark mb-1">{w.name} {w.vintage}</div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-red-600 font-bold">현재 재고: {w.quantity}병</span>
-                  <button className="text-[10px] font-bold bg-red-500 text-white px-3 py-1 rounded-full hover:bg-red-600 transition-colors">
-                    주문하기
-                  </button>
                 </div>
               </div>
             ))}
           </div>
-          
-          <div className="mt-8 pt-6 border-t border-gray-50">
-            <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
-              <Clock className="w-4 h-4" />
-              마지막 업데이트: 방금 전
-            </div>
-          </div>
+          {/* No Footer */}
         </div>
       </div>
     </div>

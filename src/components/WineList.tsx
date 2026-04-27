@@ -103,6 +103,12 @@ export function WineList({ wines, onAddWine, onUpdateWine }: WineListProps) {
     return matchesSearch && matchesType && matchesVintage && matchesCountry;
   });
 
+  const sortedWines = [...filteredWines].sort((a, b) => {
+    const nameCompare = a.name.localeCompare(b.name);
+    if (nameCompare !== 0) return nameCompare;
+    return b.vintage.localeCompare(a.vintage);
+  });
+
   const uniqueVintages = Array.from(new Set(wines.map(w => w.vintage))).sort((a, b) => b.localeCompare(a));
   const uniqueCountries = Array.from(new Set(wines.map(w => w.country))).sort();
 
@@ -486,7 +492,7 @@ export function WineList({ wines, onAddWine, onUpdateWine }: WineListProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filteredWines.map((wine) => (
+              {sortedWines.map((wine) => (
                 <tr key={wine.id} className="hover:bg-wine-light/30 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">

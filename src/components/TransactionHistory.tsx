@@ -55,6 +55,18 @@ export function TransactionHistory({
     }
   };
 
+  const getPriceTypeLabel = (type: string) => {
+    switch (type) {
+      case "Cost": return "수입단가";
+      case "B2B": return "B2B";
+      case "B2C": return "B2C";
+      case "Custom": return "Custom";
+      case "Staff": return "임직원가";
+      case "Business": return "업무용";
+      default: return type;
+    }
+  };
+
   const filteredTransactions = transactions
     .filter(t => {
       const searchLower = search.toLowerCase();
@@ -194,7 +206,7 @@ export function TransactionHistory({
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm font-bold text-wine-dark">{t.wineName}</div>
-                    <div className="text-[10px] text-gray-400 font-medium uppercase">{t.partnerName} · {t.priceType}</div>
+                    <div className="text-[10px] text-gray-400 font-medium uppercase">{t.partnerName} · {getPriceTypeLabel(t.priceType)}</div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="text-sm font-bold text-wine-dark">{t.quantity}병</div>

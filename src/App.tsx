@@ -75,24 +75,48 @@ export default function App() {
       return;
     }
 
-    const winesQuery = query(collection(db, "wines"), where("ownerId", "==", groupId));
-    const partnersQuery = query(collection(db, "partners"), where("ownerId", "==", groupId));
-    const transactionsQuery = query(collection(db, "transactions"), where("ownerId", "==", groupId));
+    const domain = user.email?.split('@')[1]?.toLowerCase();
+    const isGpUser = domain === 'gp-vc.com';
+    
+    const groupIds = [user.uid];
+    if (user.email) groupIds.push(user.email);
+    
+    if (isGpUser) {
+      groupIds.push('gp-vc.com');
+    } else if (domain && !['gmail.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'naver.com', 'daum.net', 'kakao.com', 'yahoo.com', 'me.com'].includes(domain)) {
+      groupIds.push(domain);
+    }
+
+    console.log(`User logged in: ${user.email} (Domain: ${domain}), using groupIds:`, groupIds);
+
+    const winesQuery = query(collection(db, "wines"), where("ownerId", "in", groupIds));
+    const partnersQuery = query(collection(db, "partners"), where("ownerId", "in", groupIds));
+    const transactionsQuery = query(collection(db, "transactions"), where("ownerId", "in", groupIds));
 
     const unsubWines = onSnapshot(winesQuery, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Wine));
-      setWines(data.length > 0 ? data : mockWines); // Fallback to mock if empty for demo
-    }, (err) => handleFirestoreError(err, OperationType.LIST, "wines"));
+      console.log(`Wines fetched: ${data.length} items`);
+      setWines(data); // No fallback to mock
+    }, (err) => {
+      console.error("Wines fetch error:", err);
+      setNotification({ type: "error", message: "와인 데이터를 불러오지 못했습니다: " + err.message });
+    });
 
     const unsubPartners = onSnapshot(partnersQuery, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Partner));
-      setPartners(data.length > 0 ? data : mockPartners);
-    }, (err) => handleFirestoreError(err, OperationType.LIST, "partners"));
+      console.log(`Partners fetched: ${data.length} items`);
+      setPartners(data); // No fallback to mock
+    }, (err) => {
+      console.error("Partners fetch error:", err);
+    });
 
     const unsubTransactions = onSnapshot(transactionsQuery, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Transaction));
-      setTransactions(data.length > 0 ? data : mockTransactions);
-    }, (err) => handleFirestoreError(err, OperationType.LIST, "transactions"));
+      console.log(`Transactions fetched: ${data.length} items`);
+      setTransactions(data); // No fallback to mock
+    }, (err) => {
+      console.error("Transactions fetch error:", err);
+    });
 
     return () => {
       unsubWines();
@@ -122,7 +146,7 @@ export default function App() {
   };
 
   const handleAddPartner = async (partnerData: Omit<Partner, "id">) => {
-    if (!user || groupId) return;
+    if (!user || !groupId) return;
     try {
       await addDoc(collection(db, "partners"), {
         ...partnerData,
@@ -156,7 +180,7 @@ export default function App() {
   };
 
   const handleAddTransaction = async (transactionData: Omit<Transaction, "id">) => {
-    if (!user || groupId) return;
+    if (!user || !groupId) return;
     try {
       // 1. Check if outbound quantity exceeds current inventory
       if (transactionData.type === "Outbound") {

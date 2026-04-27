@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   ArrowLeftRight, 
   Plus, 
@@ -31,7 +31,35 @@ export function TransactionForm({ wines, partners, onAddTransaction }: Transacti
     paymentMethod: "Bank Transfer" as PaymentMethod
   });
 
+  const [wineSearch, setWineSearch] = useState("");
+  const [partnerSearch, setPartnerSearch] = useState("");
+  const [showWineResults, setShowWineResults] = useState(false);
+  const [showPartnerResults, setShowPartnerResults] = useState(false);
+
   const selectedWine = wines.find(w => w.id === formData.wineId);
+  const selectedPartner = partners.find(p => p.id === formData.partnerId);
+
+  // Filtered and Sorted Lists
+  const sortedWinesList = [...wines].sort((a, b) => {
+    const nameCompare = a.name.localeCompare(b.name);
+    if (nameCompare !== 0) return nameCompare;
+    return b.vintage.localeCompare(a.vintage);
+  });
+
+  const filteredWinesList = wineSearch 
+    ? sortedWinesList.filter(w => 
+        w.name.toLowerCase().includes(wineSearch.toLowerCase()) || 
+        w.vintage.toString().includes(wineSearch)
+      )
+    : sortedWinesList;
+
+  const sortedPartnersList = [...partners]
+    .filter(p => p.type === (type === "Inbound" ? "Supplier" : "Client"))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const filteredPartnersList = partnerSearch 
+    ? sortedPartnersList.filter(p => p.name.toLowerCase().includes(partnerSearch.toLowerCase()))
+    : sortedPartnersList;
 
   const handlePriceTypeChange = (newPriceType: Transaction["priceType"]) => {
     if (!selectedWine) {
@@ -67,13 +95,7 @@ export function TransactionForm({ wines, partners, onAddTransaction }: Transacti
     }));
   };
 
-  const handleWineChange = (wineId: string) => {
-    const wine = wines.find(w => w.id === wineId);
-    if (!wine) {
-      setFormData(prev => ({ ...prev, wineId: "" }));
-      return;
-    }
-
+  const handleWineChange = (wine: Wine) => {
     let initialPriceType: Transaction["priceType"] = type === "Inbound" ? "Cost" : "B2B";
     let initialUnitPrice = 0;
     let initialCurrency: CurrencyType = "KRW";
@@ -87,12 +109,32 @@ export function TransactionForm({ wines, partners, onAddTransaction }: Transacti
 
     setFormData(prev => ({
       ...prev,
-      wineId,
+      wineId: wine.id,
       priceType: initialPriceType,
       unitPrice: initialUnitPrice,
       currency: initialCurrency
     }));
+    setWineSearch(`${wine.name} (${wine.vintage})`);
+    setShowWineResults(false);
   };
+
+  const handlePartnerChange = (partner: Partner) => {
+    setFormData(prev => ({ ...prev, partnerId: partner.id }));
+    setPartnerSearch(partner.name);
+    setShowPartnerResults(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.relative')) {
+        setShowWineResults(false);
+        setShowPartnerResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,6 +189,8 @@ export function TransactionForm({ wines, partners, onAddTransaction }: Transacti
         currency: "KRW",
         paymentMethod: "Bank Transfer"
       }));
+      setWineSearch("");
+      setPartnerSearch("");
     } catch (error) {
       console.error("Transaction error:", error);
     } finally {
@@ -164,7 +208,13 @@ export function TransactionForm({ wines, partners, onAddTransaction }: Transacti
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="flex border-b border-gray-100">
           <button
-            onClick={() => setType("Inbound")}
+            type="button"
+            onClick={() => {
+              setType("Inbound");
+              setFormData(prev => ({ ...prev, wineId: "", partnerId: "" }));
+              setWineSearch("");
+              setPartnerSearch("");
+            }}
             className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-bold transition-all ${
               type === "Inbound" ? "bg-green-50 text-green-600 border-b-2 border-green-600" : "text-gray-400 hover:bg-gray-50"
             }`}
@@ -173,7 +223,13 @@ export function TransactionForm({ wines, partners, onAddTransaction }: Transacti
             입고 등록 (Inbound)
           </button>
           <button
-            onClick={() => setType("Outbound")}
+            type="button"
+            onClick={() => {
+              setType("Outbound");
+              setFormData(prev => ({ ...prev, wineId: "", partnerId: "" }));
+              setWineSearch("");
+              setPartnerSearch("");
+            }}
             className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-bold transition-all ${
               type === "Outbound" ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600" : "text-gray-400 hover:bg-gray-50"
             }`}
@@ -185,42 +241,76 @@ export function TransactionForm({ wines, partners, onAddTransaction }: Transacti
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Wine Selection */}
-            <div className="space-y-2">
+            {/* Wine Selection (Autocomplete) */}
+            <div className="space-y-2 relative">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">와인 선택</label>
               <div className="relative">
                 <WineIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <select 
+                <input
                   required
-                  value={formData.wineId}
-                  onChange={(e) => handleWineChange(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-wine-primary/50 text-sm appearance-none"
-                >
-                  <option value="">와인을 선택하세요</option>
-                  {wines.map(w => <option key={w.id} value={w.id}>{w.name} ({w.vintage})</option>)}
-                </select>
+                  type="text"
+                  placeholder="와인 이름을 입력하세요"
+                  value={wineSearch}
+                  onChange={(e) => {
+                    setWineSearch(e.target.value);
+                    setShowWineResults(true);
+                  }}
+                  onFocus={() => setShowWineResults(true)}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-wine-primary/50 text-sm"
+                />
               </div>
+              {showWineResults && filteredWinesList.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+                  {filteredWinesList.map(w => (
+                    <button
+                      key={w.id}
+                      type="button"
+                      onClick={() => handleWineChange(w)}
+                      className="w-full px-4 py-3 text-left text-sm hover:bg-wine-light transition-colors border-b border-gray-50 last:border-0"
+                    >
+                      <div className="font-bold text-wine-dark">{w.name}</div>
+                      <div className="text-[10px] text-gray-400">빈티지: {w.vintage} | 재고: {w.quantity}병</div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Partner Selection */}
-            <div className="space-y-2">
+            {/* Partner Selection (Autocomplete) */}
+            <div className="space-y-2 relative">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">
                 {type === "Inbound" ? "공급사(와이너리)" : "고객사(레스토랑/소매점)"}
               </label>
               <div className="relative">
                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <select 
+                <input
                   required
-                  value={formData.partnerId}
-                  onChange={(e) => setFormData({...formData, partnerId: e.target.value})}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-wine-primary/50 text-sm appearance-none"
-                >
-                  <option value="">거래처를 선택하세요</option>
-                  {partners.filter(p => p.type === (type === "Inbound" ? "Supplier" : "Client")).map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
+                  type="text"
+                  placeholder="거래처를 입력하세요"
+                  value={partnerSearch}
+                  onChange={(e) => {
+                    setPartnerSearch(e.target.value);
+                    setShowPartnerResults(true);
+                  }}
+                  onFocus={() => setShowPartnerResults(true)}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-wine-primary/50 text-sm"
+                />
               </div>
+              {showPartnerResults && filteredPartnersList.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+                  {filteredPartnersList.map(p => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => handlePartnerChange(p)}
+                      className="w-full px-4 py-3 text-left text-sm hover:bg-wine-light transition-colors border-b border-gray-50 last:border-0"
+                    >
+                      <div className="font-bold text-wine-dark">{p.name}</div>
+                      <div className="text-[10px] text-gray-400">{p.category} | {p.location}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Quantity */}

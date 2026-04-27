@@ -92,6 +92,8 @@ export function PartnerList({ partners, transactions, onAddPartner, onUpdatePart
     return matchesType && matchesSearch;
   });
 
+  const sortedPartners = [...filteredPartners].sort((a, b) => a.name.localeCompare(b.name));
+
   const handleDeletePartner = async (id: string) => {
     if (confirm("이 거래처를 삭제하시겠습니까? 관련 거래 내역은 유지되지만 거래처 정보가 사라집니다.")) {
       setIsSubmitting(true);
@@ -406,7 +408,7 @@ export function PartnerList({ partners, transactions, onAddPartner, onUpdatePart
       </Modal>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPartners.map((partner) => (
+        {sortedPartners.map((partner) => (
           <div key={partner.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-6">
               <div className={`px-3 py-1 rounded-full text-[10px] font-bold ${
