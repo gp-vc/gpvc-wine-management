@@ -49,18 +49,35 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+// Shared Organization ID logic
+  const getGroupId = (user: User | null) => {
+    if (!user) return null;
+    const email = user.email || "";
+    const domain = email.split('@')[1]?.toLowerCase();
+    
+    // List of common personal domains to exclude from sharing
+    const personalDomains = ['gmail.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'naver.com', 'daum.net', 'kakao.com', 'yahoo.com', 'me.com'];
+    
+    if (domain && !personalDomains.includes(domain)) {
+      return domain;
+    }
+    return user.uid;
+  };
+
+  const groupId = getGroupId(user);
+
   // Firestore Listeners
   useEffect(() => {
-    if (!user) {
+    if (!user || !groupId) {
       setWines([]);
       setPartners([]);
       setTransactions([]);
       return;
     }
 
-    const winesQuery = query(collection(db, "wines"), where("ownerId", "==", user.uid));
-    const partnersQuery = query(collection(db, "partners"), where("ownerId", "==", user.uid));
-    const transactionsQuery = query(collection(db, "transactions"), where("ownerId", "==", user.uid));
+    const winesQuery = query(collection(db, "wines"), where("ownerId", "==", groupId));
+    const partnersQuery = query(collection(db, "partners"), where("ownerId", "==", groupId));
+    const transactionsQuery = query(collection(db, "transactions"), where("ownerId", "==", groupId));
 
     const unsubWines = onSnapshot(winesQuery, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Wine));
@@ -92,11 +109,11 @@ export default function App() {
   }, [notification]);
 
   const handleAddWine = async (wineData: Omit<Wine, "id">) => {
-    if (!user) return;
+    if (!user || !groupId) return;
     try {
       await addDoc(collection(db, "wines"), {
         ...wineData,
-        ownerId: user.uid
+        ownerId: groupId
       });
       setNotification({ type: "success", message: "와인이 성공적으로 등록되었습니다." });
     } catch (error) {
@@ -105,11 +122,11 @@ export default function App() {
   };
 
   const handleAddPartner = async (partnerData: Omit<Partner, "id">) => {
-    if (!user) return;
+    if (!user || groupId) return;
     try {
       await addDoc(collection(db, "partners"), {
         ...partnerData,
-        ownerId: user.uid
+        ownerId: groupId
       });
       setNotification({ type: "success", message: "거래처가 성공적으로 등록되었습니다." });
     } catch (error) {
@@ -139,7 +156,7 @@ export default function App() {
   };
 
   const handleAddTransaction = async (transactionData: Omit<Transaction, "id">) => {
-    if (!user) return;
+    if (!user || groupId) return;
     try {
       // 1. Check if outbound quantity exceeds current inventory
       if (transactionData.type === "Outbound") {
@@ -156,7 +173,7 @@ export default function App() {
       // 2. Add transaction record
       await addDoc(collection(db, "transactions"), {
         ...transactionData,
-        ownerId: user.uid
+        ownerId: groupId
       });
 
       // 3. Update wine quantity
@@ -248,7 +265,7 @@ export default function App() {
   };
 
   const handleSync = async () => {
-    if (!sheetIdInput.trim() || !user) return;
+    if (!sheetIdInput.trim() || !user || !groupId) return;
 
     setIsSyncing(true);
     setIsSyncModalOpen(false);
@@ -259,7 +276,7 @@ export default function App() {
       for (const wine of data) {
         await addDoc(collection(db, "wines"), {
           ...wine,
-          ownerId: user.uid,
+          ownerId: groupId,
           id: undefined // Let Firestore generate ID
         });
       }

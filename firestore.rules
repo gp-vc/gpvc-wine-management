@@ -23,7 +23,10 @@ service cloud.firestore {
     }
     
     function isOwner(ownerId) {
-      return isAuthenticated() && request.auth.uid == ownerId;
+      return isAuthenticated() && (
+        request.auth.uid == ownerId ||
+        (request.auth.token.email_verified == true && request.auth.token.email.hasSuffix('@' + ownerId))
+      );
     }
 
     function hasOnlyAllowedFields(fields) {
