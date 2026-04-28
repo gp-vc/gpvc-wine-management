@@ -49,4 +49,5 @@ export interface Transaction {
   cashReceiptIssued?: boolean;
   notes?: string;
   ownerId: string;
+  createdByEmail?: string;
 }

@@ -197,7 +197,8 @@ export default function App() {
       // 2. Add transaction record
       await addDoc(collection(db, "transactions"), {
         ...transactionData,
-        ownerId: groupId
+        ownerId: groupId,
+        createdByEmail: user.email
       });
 
       // 3. Update wine quantity

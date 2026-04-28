@@ -195,6 +195,11 @@ export function TransactionHistory({
                         hour12: false
                       })}
                     </div>
+                    {t.createdByEmail && (
+                      <div className="text-[9px] text-gray-400 mt-0.5 ml-5 font-medium truncate max-w-[120px]">
+                        {t.createdByEmail}
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${

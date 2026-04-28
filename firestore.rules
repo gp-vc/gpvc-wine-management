@@ -47,7 +47,8 @@ service cloud.firestore {
 
     match /transactions/{id} {
       allow read, list: if isGpVcUser() || canAccess(resource.data.ownerId);
-      allow create: if isGpVcUser();
+      allow create: if isGpVcUser() && 
+                      (!('createdByEmail' in request.resource.data) || request.resource.data.createdByEmail == getEmail());
       allow update, delete: if isGpVcUser();
     }
 
