@@ -135,7 +135,12 @@ export function Dashboard({ wines, transactions, onViewAll }: DashboardProps) {
                     <ArrowLeftRight className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-wine-dark">{t.wineName}</div>
+                    <div className="text-sm font-bold text-wine-dark flex items-center gap-2">
+                      {t.wineName}
+                      <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                        {wines.find(w => w.id === t.wineId)?.vintage || "N/V"}
+                      </span>
+                    </div>
                     <div className="text-[10px] text-gray-400 font-medium uppercase">
                       {t.partnerName}{t.notes ? ` · ${t.notes}` : ""}
                     </div>

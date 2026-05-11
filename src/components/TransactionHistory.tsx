@@ -210,7 +210,12 @@ export function TransactionHistory({
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm font-bold text-wine-dark">{t.wineName}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm font-bold text-wine-dark">{t.wineName}</div>
+                      <span className="text-[10px] font-medium text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
+                        {wines.find(w => w.id === t.wineId)?.vintage || "N/V"}
+                      </span>
+                    </div>
                     <div className="text-[10px] text-gray-400 font-medium uppercase">{t.partnerName} · {getPriceTypeLabel(t.priceType)}</div>
                   </td>
                   <td className="px-6 py-4 text-right">
