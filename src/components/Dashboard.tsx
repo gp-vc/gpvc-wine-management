@@ -128,7 +128,7 @@ export function Dashboard({ wines, transactions, onViewAll }: DashboardProps) {
             </button>
           </div>
           <div className="space-y-4">
-            {transactions.slice(0, 5).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((t) => (
+            {[...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5).map((t) => (
               <div key={t.id} className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 hover:bg-wine-light transition-colors">
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${t.type === "Inbound" ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600"}`}>
